@@ -190,7 +190,7 @@ var ErrNotConnected = errors.New("Not Connected")
 func (c *client) Connect() Token {
 	var err error
 	t := newToken(packets.Connect).(*ConnectToken)
-	DEBUG.Println(CLI, "Connect()")
+	INFO.Println(CLI, "Connect()")
 
 	c.obound = make(chan *PacketAndToken, c.options.MessageChannelDepth)
 	c.oboundP = make(chan *PacketAndToken, c.options.MessageChannelDepth)
@@ -215,25 +215,25 @@ func (c *client) Connect() Token {
 		for _, broker := range c.options.Servers {
 			c.options.ProtocolVersion = protocolVersion
 		CONN:
-			DEBUG.Println(CLI, "about to write new connect msg")
+			INFO.Println(CLI, "about to write new connect msg")
 			c.conn, err = openConnection(broker, &c.options.TLSConfig, c.options.ConnectTimeout, c.options.HTTPHeaders)
 			if err == nil {
-				DEBUG.Println(CLI, "socket connected to broker")
+				INFO.Println(CLI, "socket connected to broker")
 				switch c.options.ProtocolVersion {
 				case 3:
-					DEBUG.Println(CLI, "Using MQTT 3.1 protocol")
+					INFO.Println(CLI, "Using MQTT 3.1 protocol")
 					cm.ProtocolName = "MQIsdp"
 					cm.ProtocolVersion = 3
 				case 0x83:
-					DEBUG.Println(CLI, "Using MQTT 3.1b protocol")
+					INFO.Println(CLI, "Using MQTT 3.1b protocol")
 					cm.ProtocolName = "MQIsdp"
 					cm.ProtocolVersion = 0x83
 				case 0x84:
-					DEBUG.Println(CLI, "Using MQTT 3.1.1b protocol")
+					INFO.Println(CLI, "Using MQTT 3.1.1b protocol")
 					cm.ProtocolName = "MQTT"
 					cm.ProtocolVersion = 0x84
 				default:
-					DEBUG.Println(CLI, "Using MQTT 3.1.1 protocol")
+					INFO.Println(CLI, "Using MQTT 3.1.1 protocol")
 					c.options.ProtocolVersion = 4
 					cm.ProtocolName = "MQTT"
 					cm.ProtocolVersion = 4
@@ -252,7 +252,7 @@ func (c *client) Connect() Token {
 						continue
 					}
 					if c.options.ProtocolVersion == 4 {
-						DEBUG.Println(CLI, "Trying reconnect using MQTT 3.1 protocol")
+						INFO.Println(CLI, "Trying reconnect using MQTT 3.1 protocol")
 						c.options.ProtocolVersion = 3
 						goto CONN
 					}
@@ -292,7 +292,7 @@ func (c *client) Connect() Token {
 		c.msgRouter.matchAndDispatch(c.incomingPubChan, c.options.Order, c)
 
 		c.setConnected(connected)
-		DEBUG.Println(CLI, "client is connected")
+		INFO.Println(CLI, "client is connected")
 		if c.options.OnConnect != nil {
 			go c.options.OnConnect(c)
 		}
@@ -311,7 +311,7 @@ func (c *client) Connect() Token {
 		go outgoing(c)
 		go incoming(c)
 
-		DEBUG.Println(CLI, "exit startClient")
+		INFO.Println(CLI, "exit startClient")
 		t.flowComplete()
 	}()
 	return t
@@ -319,7 +319,7 @@ func (c *client) Connect() Token {
 
 // internal function used to reconnect the client when it loses its connection
 func (c *client) reconnect() {
-	DEBUG.Println(CLI, "enter reconnect")
+	INFO.Println(CLI, "enter reconnect")
 	var (
 		err error
 
@@ -331,25 +331,25 @@ func (c *client) reconnect() {
 		cm := newConnectMsgFromOptions(&c.options)
 
 		for _, broker := range c.options.Servers {
-			DEBUG.Println(CLI, "about to write new connect msg")
+			INFO.Println(CLI, "about to write new connect msg")
 			c.conn, err = openConnection(broker, &c.options.TLSConfig, c.options.ConnectTimeout, c.options.HTTPHeaders)
 			if err == nil {
-				DEBUG.Println(CLI, "socket connected to broker")
+				INFO.Println(CLI, "socket connected to broker")
 				switch c.options.ProtocolVersion {
 				case 0x83:
-					DEBUG.Println(CLI, "Using MQTT 3.1b protocol")
+					INFO.Println(CLI, "Using MQTT 3.1b protocol")
 					cm.ProtocolName = "MQIsdp"
 					cm.ProtocolVersion = 0x83
 				case 0x84:
-					DEBUG.Println(CLI, "Using MQTT 3.1.1b protocol")
+					INFO.Println(CLI, "Using MQTT 3.1.1b protocol")
 					cm.ProtocolName = "MQTT"
 					cm.ProtocolVersion = 0x84
 				case 3:
-					DEBUG.Println(CLI, "Using MQTT 3.1 protocol")
+					INFO.Println(CLI, "Using MQTT 3.1 protocol")
 					cm.ProtocolName = "MQIsdp"
 					cm.ProtocolVersion = 3
 				default:
-					DEBUG.Println(CLI, "Using MQTT 3.1.1 protocol")
+					INFO.Println(CLI, "Using MQTT 3.1.1 protocol")
 					cm.ProtocolName = "MQTT"
 					cm.ProtocolVersion = 4
 				}
@@ -373,7 +373,7 @@ func (c *client) reconnect() {
 			}
 		}
 		if rc != 0 {
-			DEBUG.Println(CLI, "Reconnect failed, sleeping for", int(sleep.Seconds()), "seconds")
+			INFO.Println(CLI, "Reconnect failed, sleeping for", int(sleep.Seconds()), "seconds")
 			time.Sleep(sleep)
 			if sleep < c.options.MaxReconnectInterval {
 				sleep *= 2
@@ -386,7 +386,7 @@ func (c *client) reconnect() {
 	}
 	// Disconnect() must have been called while we were trying to reconnect.
 	if c.connectionStatus() == disconnected {
-		DEBUG.Println(CLI, "Client moved to disconnected state while reconnecting, abandoning reconnect")
+		INFO.Println(CLI, "Client moved to disconnected state while reconnecting, abandoning reconnect")
 		return
 	}
 
@@ -401,7 +401,7 @@ func (c *client) reconnect() {
 	c.stop = make(chan struct{})
 
 	c.setConnected(connected)
-	DEBUG.Println(CLI, "client is reconnected")
+	INFO.Println(CLI, "client is reconnected")
 	if c.options.OnConnect != nil {
 		go c.options.OnConnect(c)
 	}

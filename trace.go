@@ -14,6 +14,11 @@
 
 package mqtt
 
+import (
+	"log"
+	"os"
+)
+
 type (
 	// Logger interface allows implementations to provide to this package any
 	// object that implements the methods defined in it.
@@ -27,14 +32,15 @@ type (
 	NOOPLogger struct{}
 )
 
-func (NOOPLogger) Println(v ...interface{}) {}
+func (NOOPLogger) Println(v ...interface{})               {}
 func (NOOPLogger) Printf(format string, v ...interface{}) {}
 
 // Internal levels of library output that are initialised to not print
 // anything but can be overridden by programmer
 var (
-	ERROR    Logger = NOOPLogger{}
+	ERROR    Logger = log.New(os.Stdout, "[MQTT: INFO]", 0)
 	CRITICAL Logger = NOOPLogger{}
-	WARN     Logger = NOOPLogger{}
+	WARN     Logger = log.New(os.Stdout, "[MQTT: INFO]", 0)
 	DEBUG    Logger = NOOPLogger{}
+	INFO     Logger = log.New(os.Stdout, "[MQTT: INFO]", 0)
 )
